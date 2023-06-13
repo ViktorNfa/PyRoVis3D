@@ -136,9 +136,6 @@ from matplotlib import pyplot as plt
 from matplotlib import animation
 from tqdm import tqdm
 
-from auxiliary import *
-
-
 ## Parameter setup
 
 # Dimensionality of the problem
@@ -660,3 +657,71 @@ plt.show()
 #anim.save('animation.mp4', fps=50, extra_args=['-vcodec', 'libx264'])
 
 print("Completed!")
+
+## Show animation
+
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.animation import FuncAnimation
+
+radius = 1
+theta = np.linspace(0, 2 * np.pi, 50)
+phi = np.linspace(0, np.pi, 25)
+theta, phi = np.meshgrid(theta, phi)
+
+# Animation update function
+def update(frame, y, ax):
+    # Clear the previous plot
+    ax.clear()
+
+    # Setting the axes properties
+    ax.set_xlim3d([-5.0, 5.0])
+    ax.set_xlabel('X')
+    ax.set_ylim3d([-5.0, 5.0])
+    ax.set_ylabel('Y')
+    ax.set_zlim3d([-5.0, 5.0])
+    ax.set_zlabel('Z')
+
+    # Plot obstacle
+    #xo = obstacle_center[0] + obstacle_radius * np.sin(phi) * np.cos(theta)
+    #yo = obstacle_center[1] + obstacle_radius * np.sin(phi) * np.sin(theta)
+    #zo = obstacle_center[2] + obstacle_radius * np.cos(phi)
+
+    # Plot the sphere
+    #obstacle = ax.plot_surface(xo, yo, zo, color='y')
+
+    # Update sphere
+    xs = y[0,frame] + radius * np.sin(phi) * np.cos(theta)
+    ys = y[1,frame] + radius * np.sin(phi) * np.sin(theta)
+    zs = y[2,frame] + radius * np.cos(phi)
+
+    # Plot the sphere
+    sphere = ax.plot_surface(xs, ys, zs, color='c', alpha=0.5)
+
+    # Create the three axes
+    axes = ax.quiver(y[0,frame], y[1,frame], y[2,frame], 10, 0, 0, color='r', length=0.2)
+    ayes = ax.quiver(y[0,frame], y[1,frame], y[2,frame], 0, 10, 0, color='g', length=0.2)
+    azes = ax.quiver(y[0,frame], y[1,frame], y[2,frame], 0, 0, 10, color='b', length=0.2)
+
+    line = ax.plot(y[0, :frame], y[1, :frame], y[2, :frame], color='c')
+
+    return ax
+
+# Animate the plot
+def animate():
+    # Create a figure and axis
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    for i in range(max_time_size):
+        ax = update(i, np.vstack((x[0:2,:], np.zeros((1,len(x[0,:]))))), ax)
+        plt.pause(1/freq)  # Pause between frames (adjust as needed)
+
+# Start the animation
+animate()
+
+# Does not work
+#animation = FuncAnimation(fig, update, fargs=(y, ax), frames=num_steps, interval=dt*1000, blit=True)
+
+plt.show()
